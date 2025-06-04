@@ -6,6 +6,7 @@ import dev.bookmark.api.folder.dto.FolderResponseDto;
 import dev.bookmark.api.folder.dto.FolderUpdateRequestDto;
 import dev.bookmark.api.folder.repository.FolderRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,6 +14,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class FolderService {
@@ -25,11 +27,17 @@ public class FolderService {
         // Controller의 @Valid 어노테이션에 의해 이미 처리되었습니다.
         // 따라서 여기서는 해당 검사를 반복할 필요가 없습니다.
 
+        log.info("Creating new folder with name: {}, parentFolderId: {}", requestDto.getName(), requestDto.getParentFolderId());
+
         // 부모 폴더 ID가 요청에 포함되어 있는지 확인하고, 있다면 해당 부모 폴더를 조회
         Folder parentFolder = null;
         if (requestDto.getParentFolderId() != null) {
             parentFolder = folderRepository.findById(requestDto.getParentFolderId())
-                    .orElseThrow(() -> new IllegalArgumentException("지정한 부모 폴더를 찾을 수 없습니다. ID: " + requestDto.getParentFolderId()));
+                    .orElseThrow(() -> {
+                        log.warn("Parent folder not found for ID: {}", requestDto.getParentFolderId());
+                        return new IllegalArgumentException("지정한 부모 폴더를 찾을 수 없습니다. ID: " + requestDto.getParentFolderId());
+                    });
+            log.debug("Found parent folder: {}", parentFolder.getName());
         }
 
         // 이름 중복 체크 (이것은 DB 조회와 비즈니스 로직이므로 서비스에서 처리)
@@ -41,6 +49,7 @@ public class FolderService {
         }
 
         if (existingFolder.isPresent()) {
+            log.warn("Folder name duplication for name: {} under parent: {}", requestDto.getName(), parentFolder != null ? parentFolder.getName() : "root");
             throw new IllegalArgumentException("같은 위치에 이미 동일한 이름의 폴더가 존재합니다: " + requestDto.getName());
         }
 
@@ -50,6 +59,7 @@ public class FolderService {
                 .build();
 
         Folder savedFolder = folderRepository.save(newFolder);
+        log.info("Folder created successfully with ID: {}", savedFolder.getId());
         return FolderResponseDto.fromEntity(savedFolder);
     }
 
