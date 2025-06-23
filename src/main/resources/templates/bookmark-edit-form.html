@@ -2,17 +2,22 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>새 북마크 추가</title>
+    <title>북마크 수정</title>
+    <!-- CSS 파일을 링크합니다 -->
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
 <div class="form-container">
-    <h1>새 북마크 추가</h1>
+    <h1>북마크 수정</h1>
 
-    <!-- 폼 데이터를 DTO에 바인딩하고, POST 방식으로 /bookmarks/new 경로에 전송합니다. -->
-    <form th:action="@{/bookmarks/new}" th:object="${bookmarkCreateRequestDto}" method="post">
+    <!--
+      - th:action: 폼 제출 시 POST 요청을 보낼 URL. {bookmarkId} 부분은 모델의 값으로 채워짐.
+      - th:object: 이 폼이 바인딩할 객체를 지정. 각 필드는 th:field="*{...}"로 연결됨.
+    -->
+    <form th:action="@{/bookmarks/{id}/edit(id=${bookmarkId})}" th:object="${bookmark}" method="post">
         <div class="form-group">
             <label for="title">제목</label>
+            <!-- th:field="*{title}": th:object의 title 필드와 연결. 기존 값이 자동으로 채워짐. -->
             <input type="text" id="title" th:field="*{title}" required>
         </div>
         <div class="form-group">
@@ -25,19 +30,23 @@
         </div>
         <div class="form-group">
             <label for="folderId">폴더</label>
+            <!-- th:field="*{folderId}": folderId 필드와 연결. -->
             <select id="folderId" th:field="*{folderId}" required>
                 <option value="">폴더를 선택하세요</option>
-                <!-- 모델로 전달받은 allFolders 목록으로 드롭다운 옵션을 만듭니다. -->
                 <option th:each="folder : ${allFolders}"
                         th:value="${folder.id}"
-                        th:text="${folder.name}"></option>
+                        th:text="${folder.name}"
+                        th:selected="${folder.id == bookmark.folderId}">
+                    <!-- th:selected: 현재 북마크의 폴더 ID와 옵션의 폴더 ID가 같으면 기본으로 선택됨 -->
+                </option>
             </select>
         </div>
         <div class="form-group">
             <label for="tagNames">태그 (쉼표로 구분)</label>
-            <input type="text" id="tagNames" th:field="*{tagNames}" placeholder="Java, Spring, JPA...">
+            <!-- th:field="*{tags}": 태그 목록을 쉼표로 구분된 문자열로 변환하여 보여줌. -->
+            <input type="text" id="tagNames" name="tagNames" th:value="${#strings.listJoin(bookmark.tags.![name], ', ')}">
         </div>
-        <button type="submit">저장하기</button>
+        <button type="submit">수정하기</button>
     </form>
 
     <br>

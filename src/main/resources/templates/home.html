@@ -4,31 +4,10 @@
     <meta charset="UTF-8">
     <title>스마트 북마크</title>
     <!-- 간단한 스타일을 추가하여 가독성을 높입니다. -->
-    <style>
-        body { font-family: sans-serif; line-height: 1.6; padding: 20px; max-width: 900px; margin: auto; }
-        h1, h2 { border-bottom: 2px solid #eee; padding-bottom: 10px; }
-        ul { list-style-type: none; padding-left: 20px; }
-        li { margin-top: 5px; }
-        .folder-name { font-weight: bold; color: #2c3e50; }
-        .bookmark-title { color: #3498db; }
-        .bookmark-url { font-size: 0.8em; color: #7f8c8d; margin-left: 10px; }
-        .search-form { background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
-        .search-form input[type="text"] { border: 1px solid #ccc; padding: 8px; border-radius: 4px; margin-right: 10px; }
-        .search-form button { background-color: #3498db; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; }
-        .search-form button:hover { background-color: #2980b9; }
-        /* 버튼 스타일 추가 */
-        .actions { margin-bottom: 20px; margin-top: 20px; }
-        .add-button {
-            display: inline-block;
-            background-color: #28a745;
-            color: white;
-            padding: 10px 15px;
-            text-decoration: none;
-            border-radius: 4px;
-            font-weight: bold;
-        }
-        .add-button:hover { background-color: #218838; }
-    </style>
+    <meta charset="UTF-8">
+    <title>스마트 북마크</title>
+    <!-- 이 link 태그를 추가합니다! -->
+    <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
 
@@ -53,34 +32,61 @@
 
 
 <h2>🌳 폴더 트리</h2>
+<!-- 트리 구조에 스타일을 적용하기 위해 클래스 추가 -->
 <!-- 1. 최상위 폴더 목록(rootFolders)을 가지고 재귀 프래그먼트 호출 시작 -->
-<div th:replace="~{home :: folderTree(folders=${rootFolders})}"></div>
+<div class="folder-tree">
+    <div th:replace="~{home :: folderTree(folders=${rootFolders})}"></div>
+</div>
+
 
 <!--
   2. 재귀적으로 사용될 폴더 트리 프래그먼트 정의
      - th:fragment="folderTree": 이 <div> 블록에 "folderTree"라는 이름을 부여합니다.
      - (folders): 이 프래그먼트가 'folders'라는 이름의 파라미터(데이터)를 받을 수 있음을 의미합니다.
 -->
+<!-- 재귀적으로 사용될 폴더 트리 프래그먼트 -->
 <div th:fragment="folderTree(folders)">
-    <!-- 3. 전달받은 folders 목록이 비어있지 않은 경우에만 <ul> 태그를 렌더링합니다. -->
-    <ul th:if="${folders != null and !folders.isEmpty()}">
-        <!-- 4. th:each를 사용하여 folders 목록을 순회합니다. 각 폴더는 'folder' 변수에 담깁니다. -->
+    <!-- ul 태그에 클래스 추가 -->
+    <ul th:if="${folders != null and !folders.isEmpty()}" class="folder-tree-list">
         <li th:each="folder : ${folders}">
-            <!-- 5. 폴더 이름 출력 -->
             <div>
-                <span class="folder-name" th:text="${folder.name}">📁 폴더 이름</span>
+                <!-- 폴더 아이콘과 이름 출력 -->
+                <span class="folder-name">
+                        <span style="font-size: 1.2em;">📁</span>
+                        <span th:text="${folder.name}">폴더 이름</span>
+                    </span>
             </div>
-
-            <!-- 6. 현재 폴더에 속한 북마크 목록을 순회하며 출력합니다. -->
+            <!-- 북마크 목록 -->
             <ul th:if="${folder.bookmarks != null and !folder.bookmarks.isEmpty()}">
-                <li th:each="bookmark : ${folder.bookmarks}">
-                    <span class="bookmark-title" th:text="${bookmark.title}">🔖 북마크 제목</span>
-                    <a th:href="${bookmark.url}" th:text="${bookmark.url}" class="bookmark-url" target="_blank">http://example.com</a>
+                <li th:each="bookmark : ${folder.bookmarks}" class="bookmark-item">
+                    <div class="bookmark-details">
+                        <div class="bookmark-info">
+                            <!-- 북마크 아이콘, 제목, URL 출력 -->
+                            <div>
+                                    <span class="bookmark-title">
+                                        <span style="font-size: 1.1em;">🔖</span>
+                                        <a th:href="${bookmark.url}" th:text="${bookmark.title}" target="_blank">북마크 제목</a>
+                                    </span>
+                                <a th:href="${bookmark.url}" th:text="${bookmark.url}" class="bookmark-url" target="_blank">http://example.com</a>
+                            </div>
+                            <!-- 북마크 태그 목록 출력 -->
+                            <div class="bookmark-tags" th:if="${!bookmark.tags.isEmpty()}">
+                                <span th:each="tag : ${bookmark.tags}" th:text="${tag.name}" class="tag">태그</span>
+                            </div>
+                        </div>
+                        <!-- 수정 및 삭제 링크/버튼 -->
+                        <div class="bookmark-actions">
+                            <a th:href="@{/bookmarks/{id}/edit-form(id=${bookmark.id})}">수정</a>
+                            <form th:action="@{/bookmarks/{id}/delete(id=${bookmark.id})}" method="post" style="display:inline;" onsubmit="return confirm('정말로 이 북마크를 삭제하시겠습니까?');">
+                                <button type="submit" class="delete-btn">삭제</button>
+                            </form>
+                        </div>
+                    </div>
                 </li>
             </ul>
 
             <!-- 7. [핵심] 현재 폴더의 하위 폴더 목록(folder.children)을 가지고
-                 자기 자신(folderTree 프래그먼트)을 다시 호출합니다. (재귀 호출) -->
+             자기 자신(folderTree 프래그먼트)을 다시 호출합니다. (재귀 호출) -->
             <div th:replace="~{home :: folderTree(folders=${folder.children})}"></div>
         </li>
     </ul>

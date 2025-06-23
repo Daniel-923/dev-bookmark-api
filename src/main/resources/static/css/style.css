@@ -1,0 +1,176 @@
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.6;
+    padding: 20px;
+    max-width: 900px;
+    margin: auto;
+    color: #333;
+}
+
+h1, h2 {
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 10px;
+}
+
+a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+ul {
+    list-style-type: none;
+    padding-left: 0;
+}
+
+li {
+    margin-top: 5px;
+}
+
+button {
+    cursor: pointer;
+    border-radius: 4px;
+    border: none;
+    font-family: inherit;
+}
+
+/* --- 메인 페이지(home.html) 스타일 --- */
+.actions { margin: 20px 0; }
+.add-button {
+    display: inline-block;
+    background-color: #28a745;
+    color: white;
+    padding: 10px 15px;
+    font-weight: bold;
+    border-radius: 5px;
+}
+.add-button:hover { background-color: #218838; text-decoration: none; }
+
+.search-form {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+.search-form input[type="text"] {
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 4px;
+    flex-grow: 1;
+}
+.search-form button {
+    background-color: #007bff;
+    color: white;
+    padding: 10px 15px;
+}
+.search-form button:hover { background-color: #0069d9; }
+
+/* -- 트리 구조를 위한 스타일 (핵심 수정) -- */
+.folder-tree ul {
+    padding-left: 25px; /* 하위 목록 들여쓰기 */
+    border-left: 1px solid #eee;
+}
+
+.folder-name {
+    font-weight: bold;
+    color: #2c3e50;
+    font-size: 1.1em;
+}
+
+.bookmark-item {
+    padding: 12px 0;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.bookmark-details {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.bookmark-info {
+    flex-grow: 1;
+    min-width: 0;
+}
+
+.bookmark-title {
+    font-weight: 500;
+    color: #0056b3;
+}
+
+.bookmark-url {
+    font-size: 0.85em;
+    color: #6c757d;
+    margin-left: 8px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-block;
+    max-width: 350px;
+    vertical-align: bottom;
+}
+
+.bookmark-tags {
+    margin-top: 8px;
+}
+
+.tag {
+    display: inline-block;
+    background-color: #e9ecef;
+    color: #495057;
+    padding: 3px 8px;
+    border-radius: 10px;
+    font-size: 0.8em;
+    margin-right: 5px;
+    margin-bottom: 5px;
+}
+
+.bookmark-actions { flex-shrink: 0; }
+.bookmark-actions a, .bookmark-actions button {
+    margin-left: 10px;
+    font-size: 0.85em;
+    color: #6c757d;
+    border: 1px solid #ddd;
+    padding: 3px 8px;
+    border-radius: 4px;
+    background-color: white;
+}
+.bookmark-actions .delete-btn { color: #dc3545; }
+.bookmark-actions a:hover { background-color: #f8f9fa; text-decoration: none; }
+
+
+/* --- 폼 페이지(bookmark-form, bookmark-edit-form) 스타일 --- */
+.form-container {
+    background-color: #fdfdfd;
+    border: 1px solid #eee;
+    padding: 20px 30px;
+    border-radius: 8px;
+}
+.form-group { margin-bottom: 20px; }
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: bold;
+}
+.form-group input, .form-group textarea, .form-group select {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1em;
+}
+.form-group textarea { resize: vertical; min-height: 80px; }
+.form-group button[type="submit"] {
+    background-color: #28a745;
+    color: white;
+    padding: 10px 20px;
+    font-size: 1em;
+    font-weight: bold;
+}

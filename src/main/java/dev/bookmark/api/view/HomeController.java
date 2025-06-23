@@ -2,6 +2,7 @@ package dev.bookmark.api.view;
 
 import dev.bookmark.api.bookmark.dto.BookmarkCreateRequestDto;
 import dev.bookmark.api.bookmark.dto.BookmarkResponseDto;
+import dev.bookmark.api.bookmark.dto.BookmarkUpdateRequestDto;
 import dev.bookmark.api.bookmark.service.BookmarkService;
 import dev.bookmark.api.folder.dto.FolderResponseDto;
 import dev.bookmark.api.folder.dto.FolderTreeResponseDto;
@@ -12,10 +13,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -31,6 +29,7 @@ public class HomeController {
 
     /**
      * 메인 페이지를 요청받아 폴더 트리 데이터를 모델에 담아 뷰로 전달합니다.
+     *
      * @param model 뷰에 데이터를 전달하기 위한 객체
      * @return 렌더링할 뷰(HTML 파일)의 이름
      */
@@ -71,6 +70,7 @@ public class HomeController {
 
     /**
      * 새 북마크를 추가하는 폼 페이지를 보여줍니다.
+     *
      * @param model 뷰에 데이터를 전달하기 위한 객체
      * @return 렌더링할 뷰의 이름 ("bookmark-form")
      */
@@ -88,7 +88,33 @@ public class HomeController {
     }
 
     /**
+     * 기존 북마크를 수정하는 폼 페이지를 보여줍니다.
+     *
+     * @param bookmarkId 수정할 북마크의 ID (URL 경로에서 가져옴)
+     * @param model      뷰에 데이터를 전달하기 위한 객체
+     * @return 렌더링할 뷰의 이름 ("bookmark-edit-form")
+     */
+    @GetMapping("/bookmarks/{bookmarkId}/edit-form")
+    public String showBookmarkForm(@PathVariable("bookmarkId") Long bookmarkId, Model model) {
+        // 1. 수정할 기존 북마크 정보를 서비스에서 조회합니다.
+        BookmarkResponseDto bookmarkDto = bookmarkService.getBookmarkById(bookmarkId);
+
+        // 2. 폼의 폴더 선택 드롭다운을 채우기 위해 모든 폴더 목록을 조회합니다.
+        List<FolderResponseDto> allFolders = folderService.findAllFoldersForForm();
+
+        // 3. 뷰(HTML)에 전달할 모델에 데이터를 추가합니다.
+        model.addAttribute("bookmarkId", bookmarkId); // 폼 action URL에 사용할 ID
+        model.addAttribute("bookmark", bookmarkDto);   // 폼 필드를 채울 기존 데이터
+        model.addAttribute("allFolders", allFolders); // 폴더 드롭다운 목록
+
+        // 4. "bookmark-edit-form" HTML 템플릿을 반환합니다.
+        return "bookmark-edit-form";
+    }
+
+
+    /**
      * 폼에서 전송된 데이터로 새로운 북마크를 생성합니다.
+     *
      * @param requestDto 폼 데이터가 바인딩된 DTO 객체
      * @return 성공 시 메인 페이지("/")로 리다이렉트
      */
@@ -104,9 +130,20 @@ public class HomeController {
     }
 
 
+    /**
+     * 수정 폼에서 전송된 데이터로 북마크 정보를 업데이트합니다.
+     * @param bookmarkId 수정할 북마크의 ID
+     * @param requestDto 폼 데이터가 바인딩된 DTO 객체
+     * @return 성공 시 메인 페이지("/")로 리다이렉트
+     */
+    @PostMapping("/bookmarks/{bookmarkId}/edit")
+    public String processBokkmarkUpdate(@PathVariable("bookmarkId") Long bookmarkId,
+                                        @Valid @ModelAttribute("bookmark") BookmarkUpdateRequestDto requestDto) {
+        // 1. @ModelAttribute는 HTML 폼 데이터를 DTO 객체에 바인딩합니다.
+        // 2. 서비스를 호출하여 북마크 정보를 업데이트합니다.
+        bookmarkService.updateBookmark(bookmarkId, requestDto);
 
+        return "redirect:/";
 
-
-
-
+    }
 }
