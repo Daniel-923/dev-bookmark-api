@@ -69,7 +69,14 @@ public class AppLevelSortSearchStrategy implements BookmarkSearchStrategy {
                 .collect(Collectors.toList());
 
         // 점수가 높은 순서대로 재정렬합니다.
-        scoredList.sort((o1, o2) -> Integer.compare(o2.getScore(), o1.getScore())); // 점수 내림차순
+        scoredList.sort((o1, o2) -> {
+            int scoreCompare = Integer.compare(o2.getScore(), o1.getScore()); // 점수 내림차순
+            if (scoreCompare == 0) { // 점수가 같다면
+                // 생성일 내림차순 (최신순)으로 2차 정렬
+                return o2.getBookmark().getCreatedAt().compareTo(o1.getBookmark().getCreatedAt());
+            }
+            return scoreCompare;
+        });
 
         // 정렬된 목록에서 순수한 DTO만 다시 리스트로 만듭니다.
         List<BookmarkResponseDto> sortedResult = scoredList.stream()
