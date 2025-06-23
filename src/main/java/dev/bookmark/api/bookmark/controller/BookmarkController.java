@@ -9,10 +9,13 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page; // 페이징 처리
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault; // 기본 페이징 값 설정
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 // import java.util.List; // 만약 페이징 없이 전체 목록을 가져오는 API가 있다면
 
@@ -22,6 +25,31 @@ import org.springframework.web.bind.annotation.*;
 public class BookmarkController {
 
     private final BookmarkService bookmarkService;
+
+
+    /**
+     * 키워드 및/또는 태그로 북마크를 검색하는 API (페이징 및 정렬 지원)
+     * @param keyword 검색할 키워드 (제목/설명, 선택 사항)
+     * @param tagNames 검색할 태그 이름 목록 (쉼표로 구분된 문자열, 선택 사항)
+     * @param pageable 페이징 및 정렬 정보 (예: ?page=0&size=10&sort=createdAt,desc)
+     * @return 페이징 및 우선순위 정렬이 적용된 북마크 목록
+     */
+    @GetMapping("/bookmarks/search")    // GET /api/v1/bookmarks/search
+    public ResponseEntity<Page<BookmarkResponseDto>> searchBookmarks(
+            @RequestParam(name = "keyword", required = false) String keyword,
+            @RequestParam(name = "tags", required = false)List<String> tagNames,
+            @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+        // 1. @RequestParam으로 쿼리 파라미터를 받습니다.
+        //    - required = false: 해당 파라미터는 필수가 아님을 의미합니다.
+        //    - tagNames의 경우, Spring이 쉼표로 구분된 문자열(예: tags=Java,Spring)을 자동으로 List<String>으로 변환해줍니다.
+        // 2. @PageableDefault: 페이징 파라미터가 없을 경우 기본값을 설정합니다.
+        //    - direction = Sort.Direction.DESC: 기본 정렬 방향을 내림차순(최신순)으로 설정합니다.
+
+        Page<BookmarkResponseDto> searchResult = bookmarkService.searchBookmarks(keyword, tagNames, pageable);
+        return ResponseEntity.ok(searchResult);
+    }
+
+
 
     /**
      * 새 북마크 생성 API

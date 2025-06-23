@@ -31,9 +31,8 @@ public class Bookmark {
     @Column(name = "url", nullable = false, length = 2083) // URL, null 불가, 일반적인 URL 최대 길이 고려
     private String url;
 
-    @Lob // 긴 텍스트를 저장하기 위한 어노테이션 (데이터베이스에 따라 CLOB 등으로 매핑)
-    @Column(name = "description")
-    private String description; // 북마크 설명 (선택 사항, 길 수 있음)
+    @Column(name = "description", length = 1000) // 2. 대신 @Column의 length 속성으로 길이를 지정합니다. (예: 1000자)
+    private String description; // 북마크 설명
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)

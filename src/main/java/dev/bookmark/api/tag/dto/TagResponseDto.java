@@ -9,9 +9,9 @@ import java.time.LocalDateTime;
 @Getter // 3. 외부에서 필드 값을 읽을 수 있도록 Getter만 추가합니다. (응답 DTO는 보통 불변으로 만듭니다)
 public class TagResponseDto {
 
-    private Long id; // 태그의 고유 ID
-    private String name; // 태그 이름
-    private LocalDateTime createdAt; // 태그 생성 시간
+    private final Long id; // 태그의 고유 ID
+    private final String name; // 태그 이름
+    private final LocalDateTime createdAt; // 태그 생성 시간
 
     @Builder // 4. 빌더 패턴으로 객체를 생성할 수 있게 합니다.
     public TagResponseDto(Long id, String name, LocalDateTime createdAt) {

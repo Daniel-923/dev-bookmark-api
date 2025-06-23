@@ -10,6 +10,7 @@ import dev.bookmark.api.folder.repository.FolderRepository;
 import dev.bookmark.api.tag.domain.Tag;
 import dev.bookmark.api.tag.repository.TagRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page; // 페이징 처리
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -20,6 +21,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BookmarkService {
@@ -27,10 +29,12 @@ public class BookmarkService {
     private final BookmarkRepository bookmarkRepository;
     private final FolderRepository folderRepository; // Folder 존재 여부 확인을 위해 필요
     private final TagRepository tagRepository;       // Tag 처리(조회 또는 생성)를 위해 필요
+    private final BookmarkSearchStrategy searchStrategy;
 
     /**
      * 새로운 북마크를 생성합니다.
      * 요청된 folderId로 폴더를 확인하고, tagNames로 태그를 찾아 연결하거나 새로 생성합니다.
+     *
      * @param requestDto 북마크 생성 요청 데이터
      * @return 생성된 북마크 정보
      */
@@ -73,6 +77,7 @@ public class BookmarkService {
 
     /**
      * ID로 특정 북마크를 조회합니다.
+     *
      * @param bookmarkId 조회할 북마크의 ID
      * @return 조회된 북마크 정보
      */
@@ -85,6 +90,7 @@ public class BookmarkService {
 
     /**
      * 특정 폴더에 속한 모든 북마크를 페이징 처리하여 조회합니다.
+     *
      * @param folderId 북마크를 조회할 폴더의 ID
      * @param pageable 페이징 정보 (페이지 번호, 페이지당 개수, 정렬 등)
      * @return 페이징 처리된 북마크 정보 목록
@@ -102,6 +108,7 @@ public class BookmarkService {
     /**
      * 기존 북마크의 정보를 수정합니다.
      * 제목, URL, 설명, 소속 폴더, 태그 목록 등을 변경할 수 있습니다.
+     *
      * @param bookmarkId 수정할 북마크의 ID
      * @param requestDto 수정할 북마크 정보가 담긴 DTO
      * @return 수정된 북마크 정보
@@ -170,6 +177,7 @@ public class BookmarkService {
     /**
      * 특정 ID의 북마크를 삭제합니다.
      * 북마크와 태그 간의 연결 정보도 함께 삭제됩니다. (Tag 엔티티 자체는 삭제되지 않음)
+     *
      * @param bookmarkId 삭제할 북마크의 ID
      */
     @Transactional
@@ -190,9 +198,19 @@ public class BookmarkService {
     }
 
 
-
-
-
-
-
+    /**
+     * 키워드와 태그를 사용하여 북마크를 검색합니다.
+     * 실제 검색 및 정렬 로직은 주입된 BookmarkSearchStrategy에 위임합니다.
+     * @param keyword 검색할 키워드
+     * @param tagNames 검색할 태그 이름 목록
+     * @param pageable 페이징 정보
+     * @return 페이징 및 우선순위 정렬이 적용된 북마크 목록
+     */
+    @Transactional(readOnly = true)
+    public Page<BookmarkResponseDto> searchBookmarks(String keyword, List<String> tagNames, Pageable pageable) {
+        log.info("Searching bookmarks with keyword: '{}', tags: {}", keyword, tagNames);
+        // 모든 검색 작업을 searchStrategy 객체에 위임합니다.
+        // 나중에 DbLevelSortSearchStrategy로 바꾸고 싶다면, 이 서비스 코드는 전혀 수정할 필요가 없습니다.
+        return searchStrategy.search(keyword, tagNames, pageable);
+    }
 }

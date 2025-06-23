@@ -1,8 +1,12 @@
 package dev.bookmark.api.folder.service;
 
+import dev.bookmark.api.bookmark.domain.Bookmark;
+import dev.bookmark.api.bookmark.dto.BookmarkResponseDto;
+import dev.bookmark.api.bookmark.repository.BookmarkRepository;
 import dev.bookmark.api.folder.domain.Folder;
 import dev.bookmark.api.folder.dto.FolderCreateRequestDto;
 import dev.bookmark.api.folder.dto.FolderResponseDto;
+import dev.bookmark.api.folder.dto.FolderTreeResponseDto;
 import dev.bookmark.api.folder.dto.FolderUpdateRequestDto;
 import dev.bookmark.api.folder.repository.FolderRepository;
 import lombok.RequiredArgsConstructor;
@@ -10,8 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -20,6 +23,7 @@ import java.util.stream.Collectors;
 public class FolderService {
 
     private final FolderRepository folderRepository;
+    private final BookmarkRepository bookmarkRepository; // 북마크 조회를 위해 필요
 
     @Transactional
     public FolderResponseDto createFolder(FolderCreateRequestDto requestDto) {
@@ -65,6 +69,7 @@ public class FolderService {
 
     /**
      * ID로 특정 폴더를 조회합니다.
+     *
      * @param folderId 조회할 폴더의 ID
      * @return 조회된 폴더 정보
      */
@@ -77,6 +82,7 @@ public class FolderService {
 
     /**
      * 모든 최상위 폴더 목록을 조회합니다.
+     *
      * @return 모든 최상위 폴더 정보 목록
      */
     @Transactional(readOnly = true)
@@ -89,6 +95,7 @@ public class FolderService {
 
     /**
      * 특정 부모 폴더의 모든 하위 폴더 목록을 조회합니다.
+     *
      * @param parentFolderId 부모 폴더의 ID
      * @return 해당 부모 폴더의 하위 폴더 정보 목록
      */
@@ -132,7 +139,7 @@ public class FolderService {
         // 부모 폴더 변경 처리
         // parentFolderId가 null로 올 수도 있고(최상위로 변경), 특정 ID로 올 수도 있습니다.
         // 이 부분은 DTO에서 @Valid로 검증할 수 있는 부분이 아니므로 서비스 로직에서 처리합니다.
-        if (requestDto.getParentFolderId() != null || (requestDto.getParentFolderId() == null && folderToUpdate.getParentFolder() != null) ) {
+        if (requestDto.getParentFolderId() != null || (requestDto.getParentFolderId() == null && folderToUpdate.getParentFolder() != null)) {
             // 위 조건은:
             // 1. 새로운 parentFolderId가 제공되었거나 (null이 아닌 값)
             // 2. 새로운 parentFolderId가 null로 제공되었고, 기존에 부모가 있었던 경우 (최상위로 이동)
@@ -159,6 +166,7 @@ public class FolderService {
      * 특정 폴더를 삭제합니다.
      * (주의: 현재는 하위 폴더나 포함된 북마크에 대한 처리는 하지 않고 단순 삭제합니다.
      * 실제 서비스에서는 하위 항목 처리 정책(함께 삭제, 이동 등)이 필요합니다.)
+     *
      * @param folderId 삭제할 폴더의 ID
      */
     @Transactional
@@ -196,6 +204,72 @@ public class FolderService {
         }
     }
 
+    /**
+     * 전체 폴더 및 북마크의 계층 구조(트리)를 조회합니다.
+     * 데이터베이스 조회를 최소화하기 위해 모든 폴더와 북마크를 한번에 가져와 메모리에서 조립합니다.
+     * @return 최상위 폴더들로 구성된 트리 구조 DTO 리스트
+     */
+    @Transactional(readOnly = true)
+    public List<FolderTreeResponseDto> getFolderTree() {
+        log.info("Fetching the entire folder tree structure.");
 
+        // 1. 모든 폴더와 북마크를 데이터베이스에서 한 번에 조회합니다.
+        List<Folder> allFolders = folderRepository.findAll();
+        List<Bookmark> allBookmarks = bookmarkRepository.findAll();
+
+        // 2. 북마크들을 폴더 ID를 기준으로 그룹핑하여 Map으로 만듭니다. (효율적인 조회를 위해)
+        Map<Long, List<BookmarkResponseDto>> bookmarsByFolderId = allBookmarks.stream()
+                .map(BookmarkResponseDto::fromEntity) // Bookmark -> BookmarkResponseDto로 변환
+                .collect(Collectors.groupingBy(BookmarkResponseDto::getFolderId));
+
+        // 3. 모든 폴더를 FolderTreeResponseDto로 변환하고, Map에 ID를 키로 하여 저장합니다.
+        Map<Long, FolderTreeResponseDto> folderDtoMap = allFolders.stream()
+                .map(folder -> {
+                    // 해당 폴더에 속한 북마크 목록을 가져옵니다 (없으면 빈 리스트).
+                    List<BookmarkResponseDto> bookmarksInFolder = bookmarsByFolderId.getOrDefault(folder.getId(), new ArrayList<>());
+                    return FolderTreeResponseDto.builder()
+                            .id(folder.getId())
+                            .name(folder.getName())
+                            .bookmarks(bookmarksInFolder)
+                            .children(new ArrayList<>())
+                            .build();
+                })
+                .collect(Collectors.toMap(FolderTreeResponseDto::getId, dto -> dto));
+
+        // 4. 부모-자식 관계를 설정하고, 최상위 폴더(루트) 목록을 찾습니다.
+        List<FolderTreeResponseDto> rootFolders = new ArrayList<>();
+        allFolders.forEach(folder -> {
+            FolderTreeResponseDto currentDto = folderDtoMap.get(folder.getId());
+            if (folder.getParentFolder() != null) {
+                // 부모 폴더가 있는 경우, Map에서 부모 DTO를 찾아 children 리스트에 현재 DTO를 추가합니다.
+                FolderTreeResponseDto parentDto = folderDtoMap.get(folder.getParentFolder().getId());
+                if (parentDto != null) {  // 부모가 맵에 존재하는 경우 (정상적인 경우 항상 존재)
+                    parentDto.getChildren().add(currentDto);
+                }
+            } else {
+                // 부모 폴더가 없는 경우, 최상위 폴더이므로 결과 리스트에 추가합니다.
+                rootFolders.add(currentDto);
+            }
+        });
+        log.info("Successfully constructed folder tree with {} root folders.", rootFolders.size());
+        return rootFolders;
+    }
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -5,12 +5,14 @@ import dev.bookmark.api.tag.dto.TagCreateRequestDto; // 3. Tag 생성 요청 DTO
 import dev.bookmark.api.tag.dto.TagResponseDto; // 4. Tag 응답 DTO 임포트
 import dev.bookmark.api.tag.repository.TagRepository; // 5. Tag 리포지토리 임포트
 import lombok.RequiredArgsConstructor; // 6. Lombok: final 필드 생성자 자동 주입
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service; // 7. Spring: 이 클래스가 서비스 계층의 컴포넌트임을 선언
 import org.springframework.transaction.annotation.Transactional; // 8. Spring: 트랜잭션 관리 어노테이션
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service // 9. 이 클래스가 비즈니스 로직을 담당하는 서비스 레이어의 스프링 빈(Bean)임을 나타냅니다.
 @RequiredArgsConstructor // 10. final로 선언된 필드에 대한 생성자를 자동으로 만들어줍니다 (생성자 주입).
 public class TagService {

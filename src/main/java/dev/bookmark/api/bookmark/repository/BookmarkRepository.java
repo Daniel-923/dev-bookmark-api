@@ -11,29 +11,32 @@ import org.springframework.data.repository.query.Param; // 5. @Query 파라미�
 
 import java.util.List;
 
-// 6. JpaRepository<엔티티 클래스, 엔티티의 ID 필드 타입> 인터페이스를 상속받습니다.
+// JpaRepository<엔티티 클래스, 엔티티의 ID 필드 타입> 인터페이스를 상속받습니다.
 public interface BookmarkRepository extends JpaRepository<Bookmark, Long> {
 
-    // 7. 특정 폴더(Folder)에 속한 모든 북마크를 페이징 처리하여 조회하는 쿼리 메소드
-    Page<Bookmark> findByFolder(Folder folder, Pageable pageable);
-
-    // 8. 특정 폴더 ID(folderId)에 속한 모든 북마크를 페이징 처리하여 조회하는 쿼리 메소드
+    // 특정 폴더 ID(folderId)에 속한 모든 북마크를 페이징 처리하여 조회하는 쿼리 메소드
     Page<Bookmark> findByFolder_Id(Long folderId, Pageable pageable);
 
-    // 9. (나중에 태그 기능 구현 시 추가될 수 있는 예시)
-    // 특정 태그를 포함하는 모든 북마크를 페이징 처리하여 조회 (JPQL 사용 예시)
-    // @Query("SELECT b FROM Bookmark b JOIN b.tags t WHERE t = :tag")
-    // Page<Bookmark> findByTag(@Param("tag") Tag tag, Pageable pageable);
-
-    // 10. (나중에 태그 기능 구현 시 추가될 수 있는 예시)
-    // 여러 태그 ID 중 하나라도 포함하는 북마크들을 페이징 처리하여 조회 (JPQL 사용 예시)
-    // @Query("SELECT DISTINCT b FROM Bookmark b JOIN b.tags t WHERE t.id IN :tagIds")
-    // Page<Bookmark> findByTags_IdIn(@Param("tagIds") List<Long> tagIds, Pageable pageable);
-
-    // 11. 특정 폴더에 북마크가 하나라도 존재하는지 확인하는 메소드 (폴더 삭제 시 사용 가능)
+    // 특정 폴더에 북마크가 하나라도 존재하는지 확인하는 메소드 (폴더 삭제 시 사용 가능)
     boolean existsByFolder(Folder folder);
     // 또는 ID로도 가능
     // boolean existsByFolder_Id(Long folderId);
+
+
+    /**
+     * 키워드(제목/설명) 또는 태그 이름 목록으로 북마크를 검색합니다. (수정된 쿼리)
+     * 이 쿼리는 keyword 또는 tagNames 중 하나 이상이 제공되었을 때만 호출되는 것을 가정합니다.
+     * @param keyword 검색할 키워드 (null 가능)
+     * @param tagNames 검색할 태그 이름 목록 (null 또는 비어있을 수 있음)
+     * @return 조건에 맞는 북마크 목록
+     */
+    @Query("SELECT DISTINCT b FROM Bookmark b LEFT JOIN b.tags t " +
+            "WHERE (:keyword IS NOT NULL AND (LOWER(b.title) LIKE LOWER(CONCAT('%', :keyword, '%')) OR LOWER(b.description) LIKE LOWER(CONCAT('%', :keyword, '%')))) " +
+            "   OR (:tagNames IS NOT NULL AND t.name IN :tagNames)")
+    List<Bookmark> findByKeywordOrTags(
+            @Param("keyword") String keyword,
+            @Param("tagNames") List<String> tagNames);
+
 
 
     // JpaRepository를 상속받았으므로, 기본적인 CRUD 메소드들은 이미 사용 가능합니다.

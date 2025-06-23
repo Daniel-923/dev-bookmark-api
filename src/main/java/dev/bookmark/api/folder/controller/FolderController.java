@@ -3,6 +3,7 @@ package dev.bookmark.api.folder.controller; // 1. 패키지 선언
 import dev.bookmark.api.folder.domain.Folder;
 import dev.bookmark.api.folder.dto.FolderCreateRequestDto; // 2. DTO 및 서비스 임포트
 import dev.bookmark.api.folder.dto.FolderResponseDto;
+import dev.bookmark.api.folder.dto.FolderTreeResponseDto;
 import dev.bookmark.api.folder.dto.FolderUpdateRequestDto;
 import dev.bookmark.api.folder.service.FolderService;
 import jakarta.validation.Valid; // 3. @Valid 어노테이션 임포트
@@ -63,6 +64,18 @@ public class FolderController {
         List<FolderResponseDto> folders = folderService.getChildFolders(parentId);
         return ResponseEntity.ok(folders);
     }
+
+
+    /**
+     * 전체 폴더 계층 구조(트리)를 조회하는 API
+     * @return 계층 구조를 가진 폴더 정보 목록 및 HTTP 200 OK
+     */
+    @GetMapping("/tree")
+    public ResponseEntity<List<FolderTreeResponseDto>> getFolderTree() {
+        List<FolderTreeResponseDto> folderTree = folderService.getFolderTree();
+        return ResponseEntity.ok(folderTree);
+    }
+
 
     /**
      * 특정 ID의 폴더 정보 수정 API
