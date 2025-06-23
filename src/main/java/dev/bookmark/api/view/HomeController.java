@@ -1,15 +1,20 @@
 package dev.bookmark.api.view;
 
+import dev.bookmark.api.bookmark.dto.BookmarkCreateRequestDto;
 import dev.bookmark.api.bookmark.dto.BookmarkResponseDto;
 import dev.bookmark.api.bookmark.service.BookmarkService;
+import dev.bookmark.api.folder.dto.FolderResponseDto;
 import dev.bookmark.api.folder.dto.FolderTreeResponseDto;
 import dev.bookmark.api.folder.service.FolderService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
@@ -63,6 +68,43 @@ public class HomeController {
         // 7. 'search-result'라는 이름의 뷰(HTML 파일)를 반환합니다.
         return "search-result";
     }
+
+    /**
+     * 새 북마크를 추가하는 폼 페이지를 보여줍니다.
+     * @param model 뷰에 데이터를 전달하기 위한 객체
+     * @return 렌더링할 뷰의 이름 ("bookmark-form")
+     */
+    @GetMapping("/bookmarks/new")
+    public String showBookmarkForm(Model model) {
+        // 1. 폼에 보여줄 모든 폴더 목록을 조회합니다.
+        List<FolderResponseDto> allFolders = folderService.findAllFoldersForForm();
+
+        // 2. 모델에 폴더 목록과, 폼 데이터를 담을 빈 북마크 DTO를 추가합니다.
+        model.addAttribute("allFolders", allFolders);
+        model.addAttribute("bookmarkCreateRequestDto", new BookmarkCreateRequestDto());
+
+        // 3. bookmark-form.html 템플릿을 반환합니다.
+        return "bookmark-form";
+    }
+
+    /**
+     * 폼에서 전송된 데이터로 새로운 북마크를 생성합니다.
+     * @param requestDto 폼 데이터가 바인딩된 DTO 객체
+     * @return 성공 시 메인 페이지("/")로 리다이렉트
+     */
+    @PostMapping("/bookmarks/new")
+    public String createBookmarkFromForm(@Valid @ModelAttribute BookmarkCreateRequestDto requestDto) {
+        // 1. @ModelAttribute는 HTML 폼 데이터를 DTO 객체에 바인딩합니다.
+        // 2. @Valid로 유효성 검사를 수행합니다.
+
+        bookmarkService.createBookmark(requestDto); // 3. 북마크 생성 서비스 호출
+
+        // 4. 성공 후, 메인 페이지로 리다이렉트합니다.
+        return "redirect:/";
+    }
+
+
+
 
 
 

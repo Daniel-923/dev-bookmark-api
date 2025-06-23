@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>새 북마크 추가</title>
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; padding: 20px; max-width: 600px; margin: auto; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        .form-group textarea { resize: vertical; }
+        button { background-color: #28a745; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; }
+    </style>
+</head>
+<body>
+<h1>새 북마크 추가</h1>
+
+<!-- 폼 데이터를 DTO에 바인딩하고, POST 방식으로 /bookmarks/new 경로에 전송합니다. -->
+<form th:action="@{/bookmarks/new}" th:object="${bookmarkCreateRequestDto}" method="post">
+    <div class="form-group">
+        <label for="title">제목</label>
+        <input type="text" id="title" th:field="*{title}" required>
+    </div>
+    <div class="form-group">
+        <label for="url">URL</label>
+        <input type="url" id="url" th:field="*{url}" required>
+    </div>
+    <div class="form-group">
+        <label for="description">설명</label>
+        <textarea id="description" th:field="*{description}" rows="4"></textarea>
+    </div>
+    <div class="form-group">
+        <label for="folderId">폴더</label>
+        <select id="folderId" th:field="*{folderId}" required>
+            <option value="">폴더를 선택하세요</option>
+            <!-- 모델로 전달받은 allFolders 목록으로 드롭다운 옵션을 만듭니다. -->
+            <option th:each="folder : ${allFolders}"
+                    th:value="${folder.id}"
+                    th:text="${folder.name}"></option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label for="tagNames">태그 (쉼표로 구분)</label>
+        <input type="text" id="tagNames" th:field="*{tagNames}" placeholder="Java, Spring, JPA...">
+    </div>
+    <button type="submit">저장하기</button>
+</form>
+
+<br>
+<a href="/">취소하고 메인으로 돌아가기</a>
+</body>
+</html>

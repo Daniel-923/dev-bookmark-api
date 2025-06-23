@@ -16,11 +16,28 @@
         .search-form input[type="text"] { border: 1px solid #ccc; padding: 8px; border-radius: 4px; margin-right: 10px; }
         .search-form button { background-color: #3498db; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; }
         .search-form button:hover { background-color: #2980b9; }
+        /* 버튼 스타일 추가 */
+        .actions { margin-bottom: 20px; margin-top: 20px; }
+        .add-button {
+            display: inline-block;
+            background-color: #28a745;
+            color: white;
+            padding: 10px 15px;
+            text-decoration: none;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .add-button:hover { background-color: #218838; }
     </style>
 </head>
 <body>
 
 <h1>📚 내 북마크</h1>
+
+<!-- "새 북마크 추가" 버튼 추가 -->
+<div class="actions">
+    <a th:href="@{/bookmarks/new}" class="add-button">새 북마크 추가</a>
+</div>
 
 <!-- 검색 폼 추가 -->
 <h2>🔍 북마크 검색</h2>

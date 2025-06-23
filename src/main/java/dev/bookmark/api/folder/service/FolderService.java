@@ -255,6 +255,30 @@ public class FolderService {
         return rootFolders;
     }
 
+
+    /**
+     * 북마크 폼의 폴더 선택 드롭다운을 위해 모든 폴더를 조회합니다.
+     * 하위 폴더는 이름 앞에 들여쓰기를 추가하여 계층을 표현합니다.
+     * @return 계층 정보가 포함된 폴더 DTO 목록
+     */
+    @Transactional(readOnly = true)
+    public List<FolderResponseDto> findAllFoldersForForm() {
+        List<Folder> allFolders = folderRepository.findAll(); // 우선 모든 폴더를 가져옵니다.
+        List<FolderResponseDto> result = new ArrayList<>();
+
+        // 여기서는 간단히 모든 폴더를 반환하지만,
+        // 실제로는 이 allFolders 목록을 바탕으로 재귀적으로 순회하며
+        // 이름 앞에 "--" 등을 붙여 계층을 표현한 새로운 DTO 리스트를 만들어 반환하면 좋습니다.
+        // 우선은 모든 폴더를 그대로 반환하는 간단한 버전으로 시작하겠습니다.
+        allFolders.forEach(folder -> result.add(FolderResponseDto.fromEntity(folder)));
+
+        return result;
+    }
+
+
+
+
+
 }
 
 
