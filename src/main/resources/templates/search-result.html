@@ -1,0 +1,18 @@
+<!-- 검색 결과가 하나라도 있는지 확인 -->
+<div th:if="${!searchResults.isEmpty()}">
+    <h2>검색 결과</h2>
+    <ul>
+        <!-- searchResults.content (실제 데이터 목록)를 순회 -->
+        <li th:each="bookmark : ${searchResults.content}">
+            <a th:href="${bookmark.url}" th:text="${bookmark.title}">북마크 제목</a>
+            <!-- 태그 목록도 순회하며 표시 -->
+            <span th:each="tag : ${bookmark.tags}" th:text="${tag.name}">태그</span>
+        </li>
+    </ul>
+    <!-- 여기에 페이지 번호 등을 표시하는 페이지네이션 UI 추가 가능 -->
+</div>
+
+<!-- 검색 결과가 하나도 없는 경우 -->
+<div th:if="${searchResults.isEmpty()}">
+    <p>'"<span th:text="${keyword}"></span>"' 및 태그 [<span th:text="${tags}"></span>]에 대한 검색 결과가 없습니다.</p>
+</div>

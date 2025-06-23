@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>스마트 북마크</title>
+    <!-- 간단한 스타일을 추가하여 가독성을 높입니다. -->
+    <style>
+        body { font-family: sans-serif; line-height: 1.6; padding: 20px; max-width: 900px; margin: auto; }
+        h1, h2 { border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        ul { list-style-type: none; padding-left: 20px; }
+        li { margin-top: 5px; }
+        .folder-name { font-weight: bold; color: #2c3e50; }
+        .bookmark-title { color: #3498db; }
+        .bookmark-url { font-size: 0.8em; color: #7f8c8d; margin-left: 10px; }
+        .search-form { background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; }
+        .search-form input[type="text"] { border: 1px solid #ccc; padding: 8px; border-radius: 4px; margin-right: 10px; }
+        .search-form button { background-color: #3498db; color: white; border: none; padding: 8px 15px; border-radius: 4px; cursor: pointer; }
+        .search-form button:hover { background-color: #2980b9; }
+    </style>
+</head>
+<body>
+
+<h1>📚 내 북마크</h1>
+
+<!-- 검색 폼 추가 -->
+<h2>🔍 북마크 검색</h2>
+<form th:action="@{/search}" method="get" class="search-form">
+    <label for="keyword">키워드:</label>
+    <input type="text" id="keyword" name="keyword" placeholder="제목, 설명으로 검색...">
+
+    <label for="tags">태그:</label>
+    <input type="text" id="tags" name="tags" placeholder="쉼표(,)로 구분하여 입력...">
+
+    <button type="submit">검색</button>
+</form>
+
+
+<h2>🌳 폴더 트리</h2>
+<!-- 1. 최상위 폴더 목록(rootFolders)을 가지고 재귀 프래그먼트 호출 시작 -->
+<div th:replace="~{home :: folderTree(folders=${rootFolders})}"></div>
+
+<!--
+  2. 재귀적으로 사용될 폴더 트리 프래그먼트 정의
+     - th:fragment="folderTree": 이 <div> 블록에 "folderTree"라는 이름을 부여합니다.
+     - (folders): 이 프래그먼트가 'folders'라는 이름의 파라미터(데이터)를 받을 수 있음을 의미합니다.
+-->
+<div th:fragment="folderTree(folders)">
+    <!-- 3. 전달받은 folders 목록이 비어있지 않은 경우에만 <ul> 태그를 렌더링합니다. -->
+    <ul th:if="${folders != null and !folders.isEmpty()}">
+        <!-- 4. th:each를 사용하여 folders 목록을 순회합니다. 각 폴더는 'folder' 변수에 담깁니다. -->
+        <li th:each="folder : ${folders}">
+            <!-- 5. 폴더 이름 출력 -->
+            <div>
+                <span class="folder-name" th:text="${folder.name}">📁 폴더 이름</span>
+            </div>
+
+            <!-- 6. 현재 폴더에 속한 북마크 목록을 순회하며 출력합니다. -->
+            <ul th:if="${folder.bookmarks != null and !folder.bookmarks.isEmpty()}">
+                <li th:each="bookmark : ${folder.bookmarks}">
+                    <span class="bookmark-title" th:text="${bookmark.title}">🔖 북마크 제목</span>
+                    <a th:href="${bookmark.url}" th:text="${bookmark.url}" class="bookmark-url" target="_blank">http://example.com</a>
+                </li>
+            </ul>
+
+            <!-- 7. [핵심] 현재 폴더의 하위 폴더 목록(folder.children)을 가지고
+                 자기 자신(folderTree 프래그먼트)을 다시 호출합니다. (재귀 호출) -->
+            <div th:replace="~{home :: folderTree(folders=${folder.children})}"></div>
+        </li>
+    </ul>
+</div>
+
+</body>
+</html>
