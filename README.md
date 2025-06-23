@@ -20,6 +20,9 @@
 * **지능형 검색**
   * 키워드(제목, 설명) 또는 하나 이상의 태그를 조합하여 북마크를 검색할 수 있습니다.
   * 검색 결과는 단순 조회가 아닌, 자체적인 점수 계산 로직을 통해 관련도 높은 순으로 정렬하여 제공합니다.
+ 
+* **웹 프로토타입 (Thymeleaf)**
+* 구현된 API를 활용하여 폴더 트리를 시각적으로 보여주고, 북마크를 검색할 수 있는 간단한 웹 UI를 제공합니다.
 
 <br>
 
@@ -27,6 +30,7 @@
 
 * **Language:** Java 17
 * **Framework:** Spring Boot 3.3.1
+* **View Template:** Thymeleaf
 * **Data Access:** Spring Data JPA, Hibernate
 * **Database:** H2 Database (개발용)
 * **API Documentation:** Springdoc OpenAPI (Swagger UI)
